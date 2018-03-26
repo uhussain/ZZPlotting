@@ -1,6 +1,7 @@
 import ROOT
 import math
 from ROOT import gROOT,gStyle
+from array import array
 from glob import glob
 import os
 from collections import OrderedDict
@@ -12,12 +13,18 @@ selection='preselectionTo4lmass-v1'
 Dir = '/data/uhussain/ZZAnalysis_2018-03-13/FinalSelection'
 outDir = '/afs/cern.ch/user/u/uhussain/www/ZZ2018Plots/Mar7'
 lumi = 41.79
-nbins = 40
-variables = ["e1_e2_Mass","m1_m2_Mass"]
-channels = {"eeee":variables[0],"eemm":variables,"mmmm":variables[1]}
+lowmass=[0]
+for i in range (46):
+    lowmass.append(80+2*i)
+nbins=len(lowmass)-1
+print "nbins: ",nbins
+print "lowmass: ",lowmass
+variables = ["e1_e2_Mass","m1_m2_Mass","Mass"]
+channels = {"eeee":variables[2],"eemm":variables[2],"mmmm":variables[2]}
 #channels = {"mmmm":variables[1]}
 #mcDupCut = ROOT.TCut("duplicated==0")
 Z_MASS = 91.1876
+###################################################################
 def createDataH1(channels):
     eras=['B','C','D','E','F']
     data = ['DoubleMuon','DoubleEG','MuonEG','SingleElectron','SingleMuon']
@@ -39,34 +46,39 @@ def createDataH1(channels):
     #print 'chain Entries: ',chain.GetEntries()
     #chain.ls()
         #chain.SetBranchStatus(variable,1)
-    data_Sum = "ZMass_AllChannels"
-    hdataSum = ROOT.TH1F(data_Sum, data_Sum, nbins, 40, 120)
+    data_Sum = "m4l_AllChannels"
+    hdataSum = ROOT.TH1F(data_Sum, data_Sum, nbins, array('d',lowmass))
     for ch in channels:
-        data_hist = "ZMass_"+ch
-        h1 = ROOT.TH1F(data_hist, data_hist, nbins, 40, 120)
+        data_hist = "m4l_"+ch
+        h1 = ROOT.TH1F(data_hist, data_hist, nbins, array('d',lowmass))
     #print "can it draw"
-        if (ch=="eeee" or ch=="mmmm"):
-            (locals()['chain_{0}'.format(ch)]).Draw(channels[ch]+">>"+data_hist,"(nZZTightIsoElec+nZZTightIsoMu==4) && (Mass<115 || Mass>150)")
+        #if (ch=="eeee" or ch=="mmmm"):
+        (locals()['chain_{0}'.format(ch)]).Draw(channels[ch]+">>"+data_hist,"(nZZTightIsoElec+nZZTightIsoMu==4) && (Mass<115 || Mass>150)")
             #(locals()['chain_{0}'.format(ch)]).Draw(channels[ch]+">>"+data_hist,"")
             #print "chain Draw Successful"
     #Function to retrieve mZ1 in ch=eemm
-        else:
-            (locals()['chain_{0}'.format(ch)]).Draw("(( abs(e1_e2_Mass-91.1876)<abs(m1_m2_Mass-91.1876) ) ? e1_e2_Mass : m1_m2_Mass)>>"+data_hist, "(nZZTightIsoElec+nZZTightIsoMu==4)&&(Mass<115 || Mass>150)")
-            #(locals()['chain_{0}'.format(ch)]).Draw("(( abs(e1_e2_Mass-91.1876)<abs(m1_m2_Mass-91.1876) ) ? e1_e2_Mass : m1_m2_Mass)>>"+data_hist, "")
+        #else:
+        #    (locals()['chain_{0}'.format(ch)]).Draw("(( abs(e1_e2_Mass-91.1876)<abs(m1_m2_Mass-91.1876) ) ? e1_e2_Mass : m1_m2_Mass)>>"+data_hist, "(nZZTightIsoElec+nZZTightIsoMu==4)&&(Mass<115 || Mass>150)")
+        #    #(locals()['chain_{0}'.format(ch)]).Draw("(( abs(e1_e2_Mass-91.1876)<abs(m1_m2_Mass-91.1876) ) ? e1_e2_Mass : m1_m2_Mass)>>"+data_hist, "")
         print "DataIntegral_",ch,": ",h1.Integral()
         hdataSum.Add(h1)
         h1.SetDirectory(0)
-    hdataSum.SetLineColor(ROOT.kWhite)
-    hdataSum.SetLineWidth(2)
-    hdataSum.SetStats(0)
-    hdataSum.SetTitle("")
-    hdataSum.GetXaxis().SetTitle("")
-    hdataSum.GetXaxis().SetTickLength(0)
-    hdataSum.GetXaxis().SetLabelOffset(999)
-    hdataSum.GetYaxis().SetTitle("")
-    hdataSum.GetYaxis().SetTickLength(0)
-    hdataSum.GetYaxis().SetLabelOffset(999)
-    return hdataSum
+
+    newBinning = array('d',lowmass)
+    newHist = hdataSum.Rebin(len(newBinning) - 1, "", newBinning)
+    #addOverflowBinToLastBin(newHist)
+    
+    newHist.SetLineColor(ROOT.kWhite)
+    newHist.SetLineWidth(2)
+    newHist.SetStats(0)
+    newHist.SetTitle("")
+    newHist.GetXaxis().SetTitle("")
+    newHist.GetXaxis().SetTickLength(0)
+    newHist.GetXaxis().SetLabelOffset(999)
+    newHist.GetYaxis().SetTitle("")
+    newHist.GetYaxis().SetTickLength(0)
+    newHist.GetYaxis().SetLabelOffset(999)
+    return newHist
 
 def createMCStack(channels,leg):
     mcSamples = {"WZTo3LNu":[4.430,"WZ3LNu"],"TTJets-amcatnlo":[815.96,"top"],"TTTo2L2Nu-powheg":[87.31,"top"],"DYJetsToLL_M10to50":[18610,"dy-jets"],
@@ -96,8 +108,8 @@ def createMCStack(channels,leg):
     print plotgroups.keys()
     for plotgroup in plotgroups.keys():
         members=plotgroups[plotgroup]["Members"]
-        mc_Group = "ZMass_AllChannels_"+plotgroup
-        hmcGroup = ROOT.TH1F(mc_Group, mc_Group, nbins, 40, 120)
+        mc_Group = "m4l_AllChannels_"+plotgroup
+        hmcGroup = ROOT.TH1F(mc_Group, mc_Group, nbins, array('d',lowmass))
         for mc_Sample in members:
             #print "mcSample is: ", mc_Sample
             mcPath = Date+'-'+mc_Sample+'-'+analysis+'-'+selection
@@ -114,19 +126,19 @@ def createMCStack(channels,leg):
                     (locals()['MCchain_{0}'.format(ch)]).Add(g)
                 MetaChain.Add(g)
 
-            mc_Sum = "ZMass_AllChannels_"+mc_Sample
-            hmcSum = ROOT.TH1F(mc_Sum, mc_Sum, nbins, 40, 120)
+            mc_Sum = "m4l_AllChannels_"+mc_Sample
+            hmcSum = ROOT.TH1F(mc_Sum, mc_Sum, nbins, array('d',lowmass))
             for ch in channels:
-                hist_name = "ZMass_"+mc_Sample+"_"+ch
-                hist = ROOT.TH1F(hist_name, hist_name, nbins, 40, 120)
+                hist_name = "m4l_"+mc_Sample+"_"+ch
+                hist = ROOT.TH1F(hist_name, hist_name, nbins, array('d',lowmass))
             #ROOT.SetOwnership(hist, False)
-                if (ch=="eeee" or ch=="mmmm"):
-                    (locals()['MCchain_{0}'.format(ch)]).Draw(channels[ch]+">>"+hist_name,"genWeight*(nZZTightIsoElec+nZZTightIsoMu==4)")
+                #if (ch=="eeee" or ch=="mmmm"):
+                (locals()['MCchain_{0}'.format(ch)]).Draw(channels[ch]+">>"+hist_name,"genWeight*(nZZTightIsoElec+nZZTightIsoMu==4)")
                     #(locals()['MCchain_{0}'.format(ch)]).Draw(channels[ch]+">>"+hist_name,"genWeight*(duplicated==0)")
             #Function to retrieve mZ1 in ch=eemm
-                else:
-                    (locals()['MCchain_{0}'.format(ch)]).Draw("(( abs(e1_e2_Mass-91.1876)<abs(m1_m2_Mass-91.1876) ) ? e1_e2_Mass : m1_m2_Mass)>>"+hist_name, "genWeight*(nZZTightIsoElec+nZZTightIsoMu==4)")
-                    #(locals()['MCchain_{0}'.format(ch)]).Draw("(( abs(e1_e2_Mass-91.1876)<abs(m1_m2_Mass-91.1876) ) ? e1_e2_Mass : m1_m2_Mass)>>"+hist_name, "genWeight*(duplicated==0)")
+                #else:
+                #    (locals()['MCchain_{0}'.format(ch)]).Draw("(( abs(e1_e2_Mass-91.1876)<abs(m1_m2_Mass-91.1876) ) ? e1_e2_Mass : m1_m2_Mass)>>"+hist_name, "genWeight*(nZZTightIsoElec+nZZTightIsoMu==4)")
+                #    #(locals()['MCchain_{0}'.format(ch)]).Draw("(( abs(e1_e2_Mass-91.1876)<abs(m1_m2_Mass-91.1876) ) ? e1_e2_Mass : m1_m2_Mass)>>"+hist_name, "genWeight*(duplicated==0)")
                 sumweights_hist = ROOT.TH1D("sumweights", "sumweights", 1,0,100)
                 MetaChain.Draw("1>>sumweights","summedWeights")
                 sumweights = sumweights_hist.Integral()
@@ -148,29 +160,37 @@ def createMCStack(channels,leg):
         hmcGroup.SetLineWidth(1)
         hmcGroup.SetMarkerSize(0)
         gROOT.cd()
-        hnew = hmcGroup.Clone()
+
+        newBinning = array('d',lowmass)
+        newMcHist = hmcGroup.Rebin(len(newBinning) - 1, "", newBinning)
+        #addOverflowBinToLastBin(newMcHist)
+        
+        hnew = newMcHist.Clone()
+    
         #if MCStack.GetHists():
         #    print "Before length is", len(MCStack.GetHists())
-        MCStack.Add(hmcGroup)
-        leg.AddEntry(hmcGroup,plotgroups[plotgroup]["Name"],"F")
-        hmcGroup.SetDirectory(0)
+        MCStack.Add(hnew)
+        leg.AddEntry(hnew,plotgroups[plotgroup]["Name"],"F")
+        hnew.SetDirectory(0)
         #print "length is", len(MCStack.GetHists())
         #print hist.Integral()
-    #ROOT.SetOwnership(MCStack, False)
+    ROOT.SetOwnership(MCStack, False)
     for i in MCStack.GetHists(): print i.GetName(), "Integral is", i.Integral()
     return MCStack
 def createRatio(h1, h2):
     Nbins = h1.GetNbinsX()
+    print "Nbins: ", Nbins
     Ratio = h1.Clone("Ratio")
     hStackLast = h2.Clone("hStackLast")
     for i in range(Nbins):
         stackcontent = hStackLast.GetBinContent(i)
+        print "(", hStackLast.GetXaxis().GetBinLowEdge(i),",",hStackLast.GetXaxis().GetBinUpEdge(i), ") :" ,hStackLast.GetBinWidth(i)
         if stackcontent<0:
             print "stackcontent: ", stackcontent, "and bin: ",i
         stackerror = hStackLast.GetBinError(i)
         datacontent = h1.GetBinContent(i)
         dataerror = h1.GetBinError(i)
-        print "stackerror: ",stackerror, " and data error: ",dataerror
+        #print "stackerror: ",stackerror, " and data error: ",dataerror
         #print "stackcontent: ",stackcontent," and data content: ",datacontent
         ratiocontent=0
         if(datacontent!=0):
@@ -180,17 +200,18 @@ def createRatio(h1, h2):
         else:
             error = 2.07
         #print "ratio content: ",ratiocontent," and error: ",error
-        Ratio.SetBinContent(i,ratiocontent)
-        Ratio.SetBinError(i,error)
+        if(ratiocontent!=0):
+            Ratio.SetBinContent(i,ratiocontent)
+            Ratio.SetBinError(i,error)
 
     Ratio.GetYaxis().SetRangeUser(0.0,2.2)
     Ratio.SetStats(0)
     Ratio.GetYaxis().CenterTitle()
     Ratio.SetMarkerStyle(20)
     Ratio.SetMarkerSize(0.7)
-
-    line = ROOT.TLine(40, 1.,120, 1.)
-    line.SetLineStyle(8)
+    xaxis=Ratio.GetXaxis()
+    line = ROOT.TLine(xaxis.GetBinLowEdge(xaxis.GetFirst()), 1.,xaxis.GetBinUpEdge(xaxis.GetLast()), 1.)
+    line.SetLineStyle(ROOT.kDotted)
 
     Ratio.GetYaxis().SetLabelSize(0.14)
     Ratio.GetYaxis().SetTitleSize(0.12)
@@ -270,13 +291,14 @@ def stackplot(channels):
     #h2.SetFillColor(ROOT.kBlue)
     print "Total Stack Integral",h2.Integral()
     Stackmaximum = h2.GetMaximum()
-    hStack.SetTitle("mZ1_AllChannels")
+    hStack.SetTitle("m4l_AllChannels")
     hStack.Draw("HIST")
     hStack.SetMinimum(0)
     if(Datamaximum > Stackmaximum):
         hStack.SetMaximum(Datamaximum*1.2)
     else:
         hStack.SetMaximum(Stackmaximum*1.2)
+
 
     hStack.GetYaxis().SetTitle("Events / 2 GeV")
     hStack.GetYaxis().SetTitleOffset(1.0)
@@ -303,8 +325,8 @@ def stackplot(channels):
     line.Draw("same")
 
     #redraw axis
-    xaxis = ROOT.TGaxis(40,0,120,0,40,120,510)
-    xaxis.SetTitle("m_{Z_{1}} (GeV)")
+    xaxis = ROOT.TGaxis(0,0,170,0,0,170,510)
+    xaxis.SetTitle("m_{4l} (GeV)")
     xaxis.SetLabelFont(42)
     xaxis.SetLabelSize(0.10)
     xaxis.SetTitleFont(42)
@@ -312,7 +334,7 @@ def stackplot(channels):
     xaxis.SetTitleOffset(0.70)
     xaxis.Draw("SAME")
 
-    yaxis = ROOT.TGaxis(40,0,40,2.2,0,2.2,6,"")
+    yaxis = ROOT.TGaxis(0,0,0,2.2,0,2.2,6,"")
     yaxis.SetTitle("Data/MC")
     yaxis.SetLabelFont(42)
     yaxis.SetLabelSize(0.10)
@@ -343,7 +365,7 @@ def stackplot(channels):
     #axis.Draw()
     #pad2.cd()
     #h3.Draw("ep")
-    c.SaveAs("DataMCPlots_Mar21/Z1Mass_AllChannels_blinded_4l_"+Date+".pdf") 
+    c.SaveAs("DataMCPlots_Mar21/Mass4l_AllChannels_blinded_lowmass_"+Date+".pdf") 
     #text = raw_input()
     from IPython import embed
     embed()
