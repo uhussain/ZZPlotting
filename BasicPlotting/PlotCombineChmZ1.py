@@ -1,7 +1,6 @@
 import ROOT
 import math
 from ROOT import gROOT,gStyle
-from array import array
 from glob import glob
 import os
 from collections import OrderedDict
@@ -14,45 +13,19 @@ Dir = '/data/uhussain/ZZAnalysis_2018-03-13/FinalSelection'
 outDir = '/afs/cern.ch/user/u/uhussain/www/ZZ2018Plots/Mar7'
 lumi = 41.79
 #ZZ4l Selection 60 < mZ1 < 120
-ZZ4lSelection=True
-#If you want to plot m4l in the lowmass region
-lowmassRegion=True
-#Plot with equal bins from 60-1000 GeV
-evenBins=False
-if (lowmassRegion):
-    lowmass=[70.0,72.0,74.0,76.0,78.0,80.0,82.0,84.0,86.0,88.0,90.0,92.0,94.0,96.0,98.0,100.0]
-    for i in range(35):
-        lowmass.append(100.0+2*(i+1))
-elif(evenBins):
-    lowmass=[60.0]
-    for i in range(22):
-        lowmass.append(60.0+20*(i+1))
-    for j in range(5):
-        lowmass.append(500.0+100*(j+1))
+ZZ4lSelection=False
+if ZZ4lSelection:
+    nbins = 30
+    low = 60
 else:
-    lowmass=[70.0,80.0,82.0,84.0,86.0,88.0,90.0,92.0,94.0,96.0,98.0,100.0]
-    for i in range(25):
-        lowmass.append(100.0+4*(i+1))
-    for j in range(10):
-        lowmass.append(200.0+10*(j+1))
-    for k in range(5):
-        lowmass.append(300.0+20*(k+1))
-    highmass=[450,500,600,800,1000]
-    lowmass=lowmass+highmass
-
-arraylength=len(lowmass)-1
-print "arraylength: ", arraylength
-#lowBin=lowmass[0]
-#UpBin=lowmass[arraylength]
-#nbins=int((UpBin-lowBin)/2.0)
-#print "nbins: ",nbins," lowBin: ",lowBin, " UpBin: ",UpBin
-print "lowmass: ",lowmass
-variables = ["e1_e2_Mass","m1_m2_Mass","Mass"]
-channels = {"eeee":variables[2],"eemm":variables[2],"mmmm":variables[2]}
+    nbins = 40
+    low = 40
+high = 120
+variables = ["e1_e2_Mass","m1_m2_Mass"]
+channels = {"eeee":variables[0],"eemm":variables,"mmmm":variables[1]}
 #channels = {"mmmm":variables[1]}
 #mcDupCut = ROOT.TCut("duplicated==0")
 Z_MASS = 91.1876
-###################################################################
 def createDataH1(channels):
     eras=['B','C','D','E','F']
     data = ['DoubleMuon','DoubleEG','MuonEG','SingleElectron','SingleMuon']
@@ -74,12 +47,11 @@ def createDataH1(channels):
     #print 'chain Entries: ',chain.GetEntries()
     #chain.ls()
         #chain.SetBranchStatus(variable,1)
-    data_Sum = "m4l_AllChannels"
-    hdataSum = ROOT.TH1F(data_Sum, data_Sum, arraylength, array('d',lowmass))
-    ROOT.SetOwnership(hdataSum, False)
+    data_Sum = "ZMass_AllChannels"
+    hdataSum = ROOT.TH1F(data_Sum, data_Sum, nbins, low,high)
     for ch in channels:
-        data_hist = "m4l_"+ch
-        h1 = ROOT.TH1F(data_hist, data_hist, arraylength, array('d',lowmass))
+        data_hist = "ZMass_"+ch
+        h1 = ROOT.TH1F(data_hist, data_hist, nbins, low,high)
     #print "can it draw"
         selvar = ["e1_e2_Mass","e3_e4_Mass","m1_m2_Mass","m3_m4_Mass"]
         if (ZZ4lSelection):
@@ -91,28 +63,19 @@ def createDataH1(channels):
                 (locals()['chain_{0}'.format(ch)]).Draw(channels[ch]+">>"+data_hist,"(nZZTightIsoElec+nZZTightIsoMu==4) && (Mass<115 || Mass>150) &&"+ZZ4lselection)
             else:
                 ZZ4lselection=selvar[0]+">60 &&"+selvar[0]+"<120 &&"+selvar[2]+">60 &&"+selvar[2]+"<120"
-                (locals()['chain_{0}'.format(ch)]).Draw(channels[ch]+">>"+data_hist,"(nZZTightIsoElec+nZZTightIsoMu==4) && (Mass<115 || Mass>150) &&"+ZZ4lselection)
+                (locals()['chain_{0}'.format(ch)]).Draw("(( abs(e1_e2_Mass-91.1876)<abs(m1_m2_Mass-91.1876) ) ? e1_e2_Mass : m1_m2_Mass)>>"+data_hist,"(nZZTightIsoElec+nZZTightIsoMu==4) && (Mass<115 || Mass>150) &&"+ZZ4lselection)
         else:
-            (locals()['chain_{0}'.format(ch)]).Draw(channels[ch]+">>"+data_hist,"(nZZTightIsoElec+nZZTightIsoMu==4) && (Mass<115 || Mass>150)")
+            if (ch=="eeee" or ch=="mmmm"):
+                (locals()['chain_{0}'.format(ch)]).Draw(channels[ch]+">>"+data_hist,"(nZZTightIsoElec+nZZTightIsoMu==4) && (Mass<115 || Mass>150)")
             #(locals()['chain_{0}'.format(ch)]).Draw(channels[ch]+">>"+data_hist,"")
             #print "chain Draw Successful"
-    #Function to retrieve mZ1 in ch=eemm
-        #else:
-        #    (locals()['chain_{0}'.format(ch)]).Draw("(( abs(e1_e2_Mass-91.1876)<abs(m1_m2_Mass-91.1876) ) ? e1_e2_Mass : m1_m2_Mass)>>"+data_hist, "(nZZTightIsoElec+nZZTightIsoMu==4)&&(Mass<115 || Mass>150)")
-        #    #(locals()['chain_{0}'.format(ch)]).Draw("(( abs(e1_e2_Mass-91.1876)<abs(m1_m2_Mass-91.1876) ) ? e1_e2_Mass : m1_m2_Mass)>>"+data_hist, "")
+        #Function to retrieve mZ1 in ch=eemm
+            else:
+                (locals()['chain_{0}'.format(ch)]).Draw("(( abs(e1_e2_Mass-91.1876)<abs(m1_m2_Mass-91.1876) ) ? e1_e2_Mass : m1_m2_Mass)>>"+data_hist, "(nZZTightIsoElec+nZZTightIsoMu==4)&&(Mass<115 || Mass>150)")
+            #(locals()['chain_{0}'.format(ch)]).Draw("(( abs(e1_e2_Mass-91.1876)<abs(m1_m2_Mass-91.1876) ) ? e1_e2_Mass : m1_m2_Mass)>>"+data_hist, "")
         print "DataIntegral_",ch,": ",h1.Integral()
         hdataSum.Add(h1)
         h1.SetDirectory(0)
-
-    #newBinning = map(float,lowmass)
-    #newBinning = array('d',newBinning)
-    #print "newBinning: ",newBinning
-    #newHist = hdataSum.Rebin(len(newBinning) - 1, "RebinData", newBinning)
-    #from IPython import embed
-    #embed()
-    #ROOT.SetOwnership(newHist, False)
-    #addOverflowBinToLastBin(newHist)
-    
     hdataSum.SetLineColor(ROOT.kWhite)
     hdataSum.SetLineWidth(2)
     hdataSum.SetStats(0)
@@ -135,9 +98,9 @@ def createMCStack(channels,leg):
     plotgroups=OrderedDict([
             ("WZ3LNu",{"Name": "WZ","Style": "fill-lightpurple","Members": ["WZTo3LNu"]}),
             ("top" , {"Name" : "ttbar","Style" : "fill-yellow","Members" : ["TTJets-amcatnlo","TTTo2L2Nu-powheg"]}),
-            ("HZZ-signal" , {"Name" : "HZZ","Style" : "fill-lightred","Members" : ["ggHZZ_ext1","ttH_HToZZ_4L_ext1","WminusHToZZ_ext1","WplusHToZZ_ext1","ZHToZZ_4L"]}),
-            ("ggZZ", {"Name" : "ggZZ", "Style" : "fill-blue","Members" : ["GluGluZZTo4e","GluGluZZTo4mu","GluGluZZTo2e2mu","GluGluZZTo2e2tau","GluGluZZTo2mu2tau"]}),
+            ("HZZ-signal" , {"Name" : "HZZ","Style" : "fill-lightred","Members" : ["ggHZZ_ext1","ttH_HToZZ_4L_ext1","WminusHToZZ_ext1","WplusHToZZ_ext1","ZHToZZ_4L"]}), 
             ("dy-jets" , {"Name" : "Drell-Yan","Style" : "fill-green","Members" : ["DYJetsToLL_M10to50","DYJetsToLLM-50_ext1"]}),
+            ("ggZZ", {"Name" : "ggZZ", "Style" : "fill-blue","Members" : ["GluGluZZTo4e","GluGluZZTo4mu","GluGluZZTo2e2mu","GluGluZZTo2e2tau","GluGluZZTo2mu2tau"]}),
             ("qqZZ-powheg" , {"Name" : "qqZZ","Style" : "fill-lightblue","Members" : ["ZZTo4L-powheg_ext1"]}) 
             ])
 
@@ -153,8 +116,8 @@ def createMCStack(channels,leg):
     print plotgroups.keys()
     for plotgroup in plotgroups.keys():
         members=plotgroups[plotgroup]["Members"]
-        mc_Group = "m4l_AllChannels_"+plotgroup
-        hmcGroup = ROOT.TH1F(mc_Group, mc_Group, arraylength, array('d',lowmass))
+        mc_Group = "ZMass_AllChannels_"+plotgroup
+        hmcGroup = ROOT.TH1F(mc_Group, mc_Group, nbins, low,high)
         for mc_Sample in members:
             #print "mcSample is: ", mc_Sample
             mcPath = Date+'-'+mc_Sample+'-'+analysis+'-'+selection
@@ -171,32 +134,31 @@ def createMCStack(channels,leg):
                     (locals()['MCchain_{0}'.format(ch)]).Add(g)
                 MetaChain.Add(g)
 
-            mc_Sum = "m4l_AllChannels_"+mc_Sample
-            hmcSum = ROOT.TH1F(mc_Sum, mc_Sum, arraylength, array('d',lowmass))
+            mc_Sum = "ZMass_AllChannels_"+mc_Sample
+            hmcSum = ROOT.TH1F(mc_Sum, mc_Sum, nbins, low,high)
             for ch in channels:
-                hist_name = "m4l_"+mc_Sample+"_"+ch
-                hist = ROOT.TH1F(hist_name, hist_name, arraylength, array('d',lowmass))
-
+                hist_name = "ZMass_"+mc_Sample+"_"+ch
+                hist = ROOT.TH1F(hist_name, hist_name, nbins, low,high)
+            #ROOT.SetOwnership(hist, False)
                 selvar = ["e1_e2_Mass","e3_e4_Mass","m1_m2_Mass","m3_m4_Mass"]
                 if (ZZ4lSelection):
                     if (ch=="eeee"):
                         ZZ4lselection=selvar[0]+">60 &&"+selvar[0]+"<120 &&"+selvar[1]+">60 &&"+selvar[1]+"<120)"
-                        (locals()['MCchain_{0}'.format(ch)]).Draw(channels[ch]+">>"+hist_name,"genWeight*((nZZTightIsoElec+nZZTightIsoMu==4) &&"+ZZ4lselection)
+                        (locals()['MCchain_{0}'.format(ch)]).Draw(channels[ch]+">>"+hist_name,"genWeight*((nZZTightIsoElec+nZZTightIsoMu==4) && (Mass<115 || Mass>150) &&"+ZZ4lselection)
                     elif (ch=="mmmm"):
                         ZZ4lselection=selvar[2]+">60 &&"+selvar[2]+"<120 &&"+selvar[3]+">60 &&"+selvar[3]+"<120)"
-                        (locals()['MCchain_{0}'.format(ch)]).Draw(channels[ch]+">>"+hist_name,"genWeight*((nZZTightIsoElec+nZZTightIsoMu==4) &&"+ZZ4lselection)
+                        (locals()['MCchain_{0}'.format(ch)]).Draw(channels[ch]+">>"+hist_name,"genWeight*((nZZTightIsoElec+nZZTightIsoMu==4) && (Mass<115 || Mass>150) &&"+ZZ4lselection)
                     else:
                         ZZ4lselection=selvar[0]+">60 &&"+selvar[0]+"<120 &&"+selvar[2]+">60 &&"+selvar[2]+"<120)"
-                        (locals()['MCchain_{0}'.format(ch)]).Draw(channels[ch]+">>"+hist_name,"genWeight*((nZZTightIsoElec+nZZTightIsoMu==4) &&"+ZZ4lselection)
+                        (locals()['MCchain_{0}'.format(ch)]).Draw("(( abs(e1_e2_Mass-91.1876)<abs(m1_m2_Mass-91.1876) ) ? e1_e2_Mass : m1_m2_Mass)>>"+hist_name,"genWeight*((nZZTightIsoElec+nZZTightIsoMu==4) && (Mass<115 || Mass>150) &&"+ZZ4lselection)
                 else:
-                    (locals()['MCchain_{0}'.format(ch)]).Draw(channels[ch]+">>"+hist_name,"genWeight*(nZZTightIsoElec+nZZTightIsoMu==4)")
-            #ROOT.SetOwnership(hist, False)
-                #if (ch=="eeee" or ch=="mmmm"):
+                    if (ch=="eeee" or ch=="mmmm"):
+                        (locals()['MCchain_{0}'.format(ch)]).Draw(channels[ch]+">>"+hist_name,"genWeight*((nZZTightIsoElec+nZZTightIsoMu==4) && (Mass<115 || Mass>150))")
                     #(locals()['MCchain_{0}'.format(ch)]).Draw(channels[ch]+">>"+hist_name,"genWeight*(duplicated==0)")
             #Function to retrieve mZ1 in ch=eemm
-                #else:
-                #    (locals()['MCchain_{0}'.format(ch)]).Draw("(( abs(e1_e2_Mass-91.1876)<abs(m1_m2_Mass-91.1876) ) ? e1_e2_Mass : m1_m2_Mass)>>"+hist_name, "genWeight*(nZZTightIsoElec+nZZTightIsoMu==4)")
-                #    #(locals()['MCchain_{0}'.format(ch)]).Draw("(( abs(e1_e2_Mass-91.1876)<abs(m1_m2_Mass-91.1876) ) ? e1_e2_Mass : m1_m2_Mass)>>"+hist_name, "genWeight*(duplicated==0)")
+                    else:
+                        (locals()['MCchain_{0}'.format(ch)]).Draw("(( abs(e1_e2_Mass-91.1876)<abs(m1_m2_Mass-91.1876) ) ? e1_e2_Mass : m1_m2_Mass)>>"+hist_name, "genWeight*((nZZTightIsoElec+nZZTightIsoMu==4) && (Mass<115 || Mass>150))")
+                    #(locals()['MCchain_{0}'.format(ch)]).Draw("(( abs(e1_e2_Mass-91.1876)<abs(m1_m2_Mass-91.1876) ) ? e1_e2_Mass : m1_m2_Mass)>>"+hist_name, "genWeight*(duplicated==0)") 
                 sumweights_hist = ROOT.TH1D("sumweights", "sumweights", 1,0,100)
                 MetaChain.Draw("1>>sumweights","summedWeights")
                 sumweights = sumweights_hist.Integral()
@@ -224,14 +186,7 @@ def createMCStack(channels,leg):
         hmcGroup.SetLineWidth(1)
         hmcGroup.SetMarkerSize(0)
         gROOT.cd()
-
-        #newBinning = map(float,lowmass)
-        #newBinning = array('d',newBinning)
-        #newMcHist = hmcGroup.Rebin(len(newBinning) - 1, "RebinMC", newBinning)
-        #addOverflowBinToLastBin(newMcHist)
-        
         hnew = hmcGroup.Clone()
-    
         #if MCStack.GetHists():
         #    print "Before length is", len(MCStack.GetHists())
         MCStack.Add(hnew)
@@ -244,18 +199,16 @@ def createMCStack(channels,leg):
     return MCStack
 def createRatio(h1, h2):
     Nbins = h1.GetNbinsX()
-    print "Nbins: ", Nbins
     Ratio = h1.Clone("Ratio")
     hStackLast = h2.Clone("hStackLast")
     for i in range(Nbins):
         stackcontent = hStackLast.GetBinContent(i)
-        print "(", hStackLast.GetXaxis().GetBinLowEdge(i),",",hStackLast.GetXaxis().GetBinUpEdge(i), ") :" ,hStackLast.GetBinWidth(i)
         if stackcontent<0:
             print "stackcontent: ", stackcontent, "and bin: ",i
         stackerror = hStackLast.GetBinError(i)
         datacontent = h1.GetBinContent(i)
         dataerror = h1.GetBinError(i)
-        #print "stackerror: ",stackerror, " and data error: ",dataerror
+        print "stackerror: ",stackerror, " and data error: ",dataerror
         #print "stackcontent: ",stackcontent," and data content: ",datacontent
         ratiocontent=0
         if(datacontent!=0):
@@ -264,16 +217,16 @@ def createRatio(h1, h2):
             error = ratiocontent*(math.sqrt(math.pow((dataerror/datacontent),2) + math.pow((stackerror/stackcontent),2)))
         else:
             error = 2.07
-        #print "ratio content: ",ratiocontent," and error: ",error
-        if(ratiocontent!=0):
-            Ratio.SetBinContent(i,ratiocontent)
-            Ratio.SetBinError(i,error)
+        print "ratio content: ",ratiocontent," and error: ",error
+        Ratio.SetBinContent(i,ratiocontent)
+        Ratio.SetBinError(i,error)
 
     Ratio.GetYaxis().SetRangeUser(0.0,2.2)
     Ratio.SetStats(0)
     Ratio.GetYaxis().CenterTitle()
     Ratio.SetMarkerStyle(20)
     Ratio.SetMarkerSize(0.7)
+
     xaxis=Ratio.GetXaxis()
     line = ROOT.TLine(xaxis.GetBinLowEdge(xaxis.GetFirst()), 1.,xaxis.GetBinUpEdge(xaxis.GetLast()), 1.)
     line.SetLineStyle(ROOT.kDotted)
@@ -310,6 +263,8 @@ def createCanvasPads():
     pad1.SetFrameBorderMode(0)
     pad1.SetBorderMode(0)
     pad1.SetBottomMargin(0)  # joins upper and lower plot
+    #pad1.SetGridx()
+    #pad1.Draw()
     return c,pad1
 
 def createPad2(canvas):
@@ -354,21 +309,15 @@ def stackplot(channels):
     #h2.SetFillColor(ROOT.kBlue)
     print "Total Stack Integral",h2.Integral()
     Stackmaximum = h2.GetMaximum()
-    hStack.SetTitle("m4l_AllChannels")
+    hStack.SetTitle("mZ1_AllChannels")
     hStack.Draw("HIST")
     hStack.SetMinimum(0)
     if(Datamaximum > Stackmaximum):
-        hStack.SetMaximum(Datamaximum*1.6)
+        hStack.SetMaximum(Datamaximum*1.2)
     else:
-        hStack.SetMaximum(Stackmaximum*1.6)
+        hStack.SetMaximum(Stackmaximum*1.2)
 
-
-    if (lowmassRegion):
-        hStack.GetYaxis().SetTitle("Events / 2 GeV")
-    elif(evenBins): 
-        hStack.GetYaxis().SetTitle("Events / 20 GeV")
-    else:
-        hStack.GetYaxis().SetTitle("Events / 2 GeV")
+    hStack.GetYaxis().SetTitle("Events / 2 GeV")
     hStack.GetYaxis().SetTitleOffset(1.0)
     hStack.Draw("HIST")
     h1.SetLineColor(ROOT.kBlack)
@@ -376,6 +325,9 @@ def stackplot(channels):
     h1.SetMarkerSize(1.0)
     h1.Draw("pex0same")
     
+    #leg = ROOT.TLegend(0.20,0.54,0.48,0.84,"")
+    #leg.AddEntry(h1,"Data")
+    #leg.AddEntry(h2, "2017 Background MC Samples")
     leg.SetFillColor(ROOT.kWhite)
     leg.SetFillStyle(0)
     leg.SetTextSize(0.025)
@@ -394,7 +346,7 @@ def stackplot(channels):
     xStart = Xaxis.GetBinLowEdge(Xaxis.GetFirst())
     xEnd = Xaxis.GetBinUpEdge(Xaxis.GetLast())
     xaxis = ROOT.TGaxis(xStart,0,xEnd,0,xStart,xEnd,510)
-    xaxis.SetTitle("m_{4l} (GeV)")
+    xaxis.SetTitle("m_{Z_{1}} (GeV)")
     xaxis.SetLabelFont(42)
     xaxis.SetLabelSize(0.10)
     xaxis.SetTitleFont(42)
@@ -412,45 +364,11 @@ def stackplot(channels):
     yaxis.Draw("SAME")
 
     c.Update()
-    #print hStack.ls()
-    #hStack.GetYaxis().SetTitle("Events / 2 GeV")
-    #hStack.GetYaxis().SetTitleOffset(1.0)
-    #c, pad1, pad2 = createCanvasPads()
-    #c = createCanvasPads()
-    # draw everything
-    #pad1.cd()
-    #c.cd()
-    #h1.Draw("pex0")
-    #hStack.Draw("HIST SAME")
-    #h1.Draw("pex0same")
-    # to avoid clipping the bottom zero, redraw a small axis
-    #h1.GetYaxis().SetLabelSize(0.0)
-    #maximum = h1.GetMaximum()
-    #print "h1.GetMaximum(): ", maximum
-    #axis = ROOT.TGaxis(0, 120, 0, maximum*1.2, 120, maximum*1.2, 510, "")
-    #axis.SetLabelFont(43)
-    #axis.SetLabelSize(15)
-    #axis.Draw()
-    #pad2.cd()
-    #h3.Draw("ep")
 
-    if (lowmassRegion):
-        if (ZZ4lSelection): 
-            c.SaveAs("DataMCPlots_Mar29/ZZ4l_AllChannels_blinded_lowmass_70-170"+Date+".pdf")  
-        else:
-            c.SaveAs("DataMCPlots_Mar29/FullSpectrum_AllChannels_blinded_lowmass_70-170"+Date+".pdf")  
-        #c.SaveAs("DataMCPlots_Mar29/Mass4l_AllChannels_blinded_lowmass_70-170"+Date+".root")  
-    elif (evenBins):
-        if (ZZ4lSelection): 
-            c.SaveAs("DataMCPlots_Mar29/ZZ4l_AllChannels_blinded_evenBinsTest_60-1000"+Date+".pdf")  
-        else:
-            c.SaveAs("DataMCPlots_Mar29/FullSpectrum_AllChannels_blinded_evenBinsTest_60-1000"+Date+".pdf")  
+    if (ZZ4lSelection): 
+        c.SaveAs("DataMCPlots_Mar29/Z1Mass_ZZ4lSelection_AllChannels_blinded_m4l_"+Date+".pdf")  
     else:
-        if (ZZ4lSelection): 
-            c.SaveAs("DataMCPlots_Mar29/ZZ4l_AllChannels_blinded_fullmass"+Date+".pdf")  
-        else:
-            c.SaveAs("DataMCPlots_Mar29/FullSpectrum_AllChannels_blinded_fullmass"+Date+".pdf")  
-        #c.SaveAs("DataMCPlots_Mar29/Mass4l_AllChannels_blinded_fullmass"+Date+".root") 
+        c.SaveAs("DataMCPlots_Mar29/Z1Mass_FullSpectrum_AllChannels_blinded_m4l_"+Date+".pdf") 
     #text = raw_input()
     from IPython import embed
     embed()
