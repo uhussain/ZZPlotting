@@ -1,7 +1,7 @@
-filename="Hists04Feb2019-HZZ2017ERecoSF.root"
+filename="Hists26Feb2019-HZZ2017.root"
 selection="HZZSelectionsTightLeps"
-dir="Sync/BkgEstimateHZZ_04Feb2019"
-variable="Mass"
+dir="Sync/BkgEstimateHZZ2017ReReco_25Feb2019"
+variable="Mass Z1Mass Z2Mass"
 #variable="Z1Mass"
 for var in $variable
 do
