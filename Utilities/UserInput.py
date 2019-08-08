@@ -135,7 +135,8 @@ def getListOfFiles(file_set, selection):
                     drellyan = "dy-jets"
                 filelist.append("ggZZ")
                 filelist.append("qqZZ-powheg")
-                filelist.append("wz3lnu-amcnlo")
+                #filelist.append("wz3lnu-amcnlo")
+                filelist.append("wz3lnu-powheg")#New Ntupples has powheg sample
                 filelist.append("top")
                 filelist.append(drellyan)
                 #filelist.append("wz3lnu-amcnlo")
