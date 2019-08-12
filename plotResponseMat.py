@@ -61,8 +61,8 @@ def makeResponseMatrix(hfile,sample,var, outdir,chan):
     labels={"ZZPt":"Pt_{4l} [GeV]","Mass":"m_{4l} [GeV]"}
     print labels[var]
     RespMat.SetTitle("")
-    RespMat.GetXaxis().SetTitle("Reco%s"% (labels[var]))
-    RespMat.GetYaxis().SetTitle("True%s"% (labels[var]))
+    RespMat.GetYaxis().SetTitle("Reco%s"% (labels[var]))
+    RespMat.GetXaxis().SetTitle("True%s"% (labels[var]))
     
     RespMat.Draw(draw_opt)
 

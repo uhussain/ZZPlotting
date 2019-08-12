@@ -1,11 +1,12 @@
 filename="Hists11Feb2019-ZZ4l2018.root"
 selection="ZZSelectionsTightLeps"
-dir="ANPlots/2018/LeptonDistributions_11Feb2019"
+dir="ANPlots/2018/OrderedLeptons_25Feb2019"
 #variable="Mass Z1Mass Z2Mass ZMass ZPt Z1Pt Z2Pt ZZPt"
-variable="LepPt LepEta Lep12Pt Lep12Eta Lep34Pt Lep34Eta"
+#variable="LepPt LepEta Lep12Pt Lep12Eta Lep34Pt Lep34Eta"
+variable="Z1lep1_Pt Z1lep1_Eta Z1lep2_Pt Z1lep2_Eta Z2lep1_Pt Z2lep1_Eta Z2lep2_Pt Z2lep2_Eta"
 for var in $variable
 do
-  if [ $var = "LepPt" ];
+  if [ $var = "LepPt" ] || [ $var = "Z1lep1_Pt" ] || [ $var = "Z1lep2_Pt" ] || [ $var = "Z2lep1_Pt" ] || [ $var = "Z2lep2_Pt" ]
   then
     echo ${var}
     echo "All Channels"
@@ -84,7 +85,8 @@ do
     ./makeHistStack.py -s ZZ4l2019/${selection} -f ZZ4l2019NonPrompt -l 59.95 -u stat --latex --hist_file /afs/cern.ch/user/u/uhussain/ZZ4lHistFiles/${filename} --folder_name ${dir}/2e2m -b ${var} -c eemm,mmee --preliminary --scaleymax 1.2 --scalelegx 1.2
   
   fi
-  if [ $var = "LepEta" ];
+  if [ $var = "LepEta" ] || [ $var = "Z1lep1_Eta" ] || [ $var = "Z1lep2_Eta" ] || [ $var = "Z2lep1_Eta" ] || [ $var = "Z2lep2_Eta" ]
+  #if [ $var = "LepEta" ];
   then
     echo ${var}
     echo "All Channels"

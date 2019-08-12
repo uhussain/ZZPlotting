@@ -14,8 +14,6 @@ Dir = '/data/uhussain/ZZAnalysis_2018-03-13/FinalSelection'
 #2018 Data
 Dir2018 = '/data/uhussain/ZZAnalysis_2018-08-13/FinalSelection'
 outDir = '/afs/cern.ch/user/u/uhussain/www/ZZ2018Plots/Mar7'
-lumi = 41.79
-
 lumi = 19.503
 #ZZ4l Selection 60 < mZ1 < 120
 ZZ4lSelection=False
@@ -32,16 +30,19 @@ channels = {"eeee":variables[0],"eemm":variables,"mmmm":variables[1]}
 #mcDupCut = ROOT.TCut("duplicated==0")
 Z_MASS = 91.1876
 def createDataH1(channels):
-    eras=['B','C','D','E','F']
-    data = ['DoubleMuon','DoubleEG','MuonEG','SingleElectron','SingleMuon']
+    eras=['A','B']
+    versions=['v1','v2','v3']
+    data = ['SingleMuon']
     dataFiles=[]
     for d in data:
         for era in eras:
-            dataPath=Date+'-'+d+'_'+'Run2017'+era+'-17Nov2017-v1-'+analysis+'-'+selection
-            dataDir=os.path.join(Dir,dataPath)
-            #print 'dataDir: ',dataDir
-            dataFiles+=glob(dataDir+"/*.root")
-            #print 'dataFiles added'
+            for vers in versions:
+                dataPath=dataDate+'-'+d+'_'+'Run2018'+era+'-PromptReco-'+vers+'-ZZ4l2019-'+selection
+                dataDir=os.path.join(Dir2018,dataPath)
+                if os.path.exists(dataDir):
+                    print 'dataDir: ',dataDir
+                    dataFiles+=glob(dataDir+"/*.root")
+    #print 'dataFiles added'
     print 'Length of dataFiles: ',len(dataFiles)
     for ch in channels:
         locals()['chain_{0}'.format(ch)] = ROOT.TChain(ch+"/ntuple")

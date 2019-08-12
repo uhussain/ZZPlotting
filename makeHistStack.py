@@ -181,6 +181,8 @@ def main():
 
         #embed()
         canvas = helper.makePlots(hist_stacks, data_hists, name, args, signal_stacks)
+        print "plot_path: ",plot_path
+        print "html_path: ",html_path
         helper.savePlot(canvas, plot_path, html_path, plot_name, True, args)
         makeSimpleHtml.writeHTML(html_path.replace("/plots",""), args.selection)
 
