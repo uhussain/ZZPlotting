@@ -99,11 +99,17 @@ def getStacked(name, config_factory, selection, filelist, branch_name, channels,
         raw_events = hist.GetEntries() - 1
         hist_stack.Add(hist)
         error = array.array('d', [0])
+        print "plot_set: ",plot_set
+        for i in range(1,hist.GetNbinsX()+1):
+            print "Bin ",i,": ",hist.GetBinContent(i)
         weighted_events = hist.IntegralAndError(0, hist.GetNbinsX(), error)
+        print "weightedEvents: ",weighted_events
+        print "statError:",error[0]
         if not hist.GetSumw2(): hist.Sumw2()
         hist_info[plot_set] = {'raw_events' : raw_events, 
                                'weighted_events' : weighted_events,
                                'error' : 0 if int(raw_events) <= 0 else error[0],
+                               #'stat error': error[0]
                                 'stat error' : 0 if raw_events <= 0 else \
                                     weighted_events/math.sqrt(raw_events) 
         }
@@ -120,7 +126,7 @@ def main():
     path = "/cms/uhussain" if "hep.wisc.edu" in os.environ['HOSTNAME'] else \
         "/afs/cern.ch/user/u/uhussain/work"
     config_factory = ConfigHistFactory(
-        "%s/ZZ4lAnalysisDatasetManager" % path,
+        "%s/ZZ4lRun2DatasetManager" % path,
         args.selection.split("_")[0],
         args.object_restrict
     )

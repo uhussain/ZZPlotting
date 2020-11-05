@@ -24,6 +24,8 @@ def getDefaultParser():
                         "Note: Leave unspecified for auto naming")
     parser.add_argument("--hist_file", type=str, default="",
                         help="Read histograms from file")
+    parser.add_argument("--stat_file", type=str, default="",
+                        help="Read histograms from file")
     parser.add_argument("--rebin", type=lambda x: [float(i) for i in x.split(",")], default=0,
                         help="Rebin (integer)")
     parser.add_argument("--legend_left", action="store_true",
@@ -97,13 +99,24 @@ def getListOfFiles(file_set, selection):
     filelist = []
     for files in [x.strip() for x in file_set.split(",")]:
         fileset_nc = files.lower()
-        if "zz4l2018" in fileset_nc:
+        if "zz4l" in fileset_nc:
             if "nonprompt" in fileset_nc:
-                filelist.append("HZZ-signal")
-                filelist.append("VVV")
+                #filelist.append("HZZ_signal")
                 filelist.append("nonprompt")
+                filelist.append("VVV")
+                filelist.append("GGZZ")
+                filelist.append("zzjj4l_ewk")
+                #filelist.append("ggZZ")
+                filelist.append("qqZZ_powheg")
+            elif "zzjj" in fileset_nc:
+                filelist.append("nonprompt")
+                filelist.append("VVV")
+                filelist.append("qqZZ_powheg")
                 filelist.append("ggZZ")
-                filelist.append("qqZZ-powheg")
+                filelist.append("zzjj4l_ewk")
+            #For Plotting systematic variations
+            elif "powheg" in fileset_nc:    
+                filelist.append("qqZZ_powheg")
             else:
                 if "dyjets-nlo" in fileset_nc:
                     drellyan = "dyjets_nlo"
@@ -112,39 +125,10 @@ def getListOfFiles(file_set, selection):
                 else:
                     drellyan = "dy-jets"
                 filelist.append("ggZZ")
-                filelist.append("qqZZ-powheg")
-                filelist.append("wz3lnu-amcnlo")
+                filelist.append("qqZZ_powheg")
+                filelist.append("wz3lnu-powheg")
                 filelist.append("top")
                 filelist.append(drellyan)
-            #if "nonprompt" in fileset_nc:
-            #    filelist.append("HZZ-signal")
-            #    #filelist.append("nonprompt")
-        elif "zz4l2019" in fileset_nc:
-            if "nonprompt" in fileset_nc:
-                filelist.append("HZZ-signal")
-                filelist.append("VVV")
-                filelist.append("nonprompt")
-                filelist.append("ggZZ")
-                filelist.append("qqZZ-powheg")
-            else:
-                if "dyjets-nlo" in fileset_nc:
-                    drellyan = "dyjets_nlo"
-                elif "dylo" in fileset_nc:
-                    drellyan = "dy-lo"
-                else:
-                    drellyan = "dy-jets"
-                filelist.append("ggZZ")
-                filelist.append("qqZZ-powheg")
-                #filelist.append("wz3lnu-amcnlo")
-                filelist.append("wz3lnu-powheg")#New Ntupples has powheg sample
-                filelist.append("top")
-                filelist.append(drellyan)
-                #filelist.append("wz3lnu-amcnlo")
-                #filelist.append("top")
-                #filelist.append(drellyan)
-            #if "nonprompt" in fileset_nc:
-            #    filelist.append("HZZ-signal")
-            #    #filelist.append("nonprompt")
         else:
             filelist.append(files)
     return filelist

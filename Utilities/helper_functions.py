@@ -38,17 +38,19 @@ def makePlots(hist_stacks, data_hists, name, args, signal_stacks=[0], errors=[])
     xcoords = [xdist+offset, xdist+width+offset] if args.legend_left \
         else [xdist-width-offset, xdist-offset]
     unique_entries = min(len(hist_stacks[0].GetHists()), 8)
-    ymax = 0.8 if args.legend_left else 0.9
+    ymax = 0.9 if args.legend_left else 0.9
     ycoords = [ymax, ymax - 0.08*unique_entries*args.scalelegy]
     coords = [xcoords[0], ycoords[0], xcoords[1], ycoords[1]]
     
     if "none" not in args.uncertainties:
+        print("hist_stacks[0]: ",hist_stacks[0].GetHists())
         histErrors = getHistErrors(hist_stacks[0], args.nostack) if not errors else errors
         for error_hist,signal_stack,data_hist in zip(histErrors, signal_stacks, data_hists):
             ROOT.SetOwnership(error_hist, False)
             error_hist.SetLineWidth(1)
             ROOT.gStyle.SetHatchesLineWidth(1)
             ROOT.gStyle.SetHatchesSpacing(0.75)
+            print("error_hist: ",error_hist.Integral())
             error_hist.Draw("same e2")
             if signal_stack:
                 signal_stack.Draw("nostack same hist")
@@ -68,7 +70,7 @@ def makePlots(hist_stacks, data_hists, name, args, signal_stacks=[0], errors=[])
     if not args.no_decorations:
         ROOT.dotrootImport('uhussain/CMSPlotDecorations')
         scale_label = "Normalized to Unity" if args.luminosity < 0 else \
-            "%0.1f fb^{-1}" % args.luminosity
+            "%3.0f fb^{-1}" % int(args.luminosity)
         
         lumi_text = ""
         if args.thesis:
@@ -78,7 +80,7 @@ def makePlots(hist_stacks, data_hists, name, args, signal_stacks=[0], errors=[])
         if args.simulation:
             lumi_text += "Simulation" 
         
-        ROOT.CMSlumi(canvas, 0, 11, "%s (13 TeV)" % scale_label,lumi_text)
+        ROOT.CMSlumi(canvas, 0, 0, "%s (13 TeV)" % scale_label,lumi_text)
                 #"Preliminary Simulation" if args.simulation else "Preliminary")
     if args.extra_text != "":
         lines = [x.strip() for x in args.extra_text.split(";")]
@@ -138,6 +140,7 @@ def makePlot(hist_stack, data_hist, name, args, signal_stack=0, same=""):
         if not "yield" in name.lower():
             data_hist.Sumw2(False)
             data_hist.SetBinErrorOption(ROOT.TH1.kPoisson)
+        data_hist.SetMarkerSize(1.5)
         data_hist.Draw("e0 same")
     first_stack.GetYaxis().SetTitleSize(hists[0].GetYaxis().GetTitleSize())    
     first_stack.GetYaxis().SetTitleOffset(hists[0].GetYaxis().GetTitleOffset())    
@@ -174,6 +177,7 @@ def makePlot(hist_stack, data_hist, name, args, signal_stack=0, same=""):
 def getHistErrors(hist_stack, separate):
     histErrors = []
     for hist in hist_stack.GetHists():
+        print("histName: ",hist.GetName())
         error_hist = plotter.getHistErrors(hist)
         if separate:
             error_hist.SetFillColor(hist.GetLineColor())
@@ -245,7 +249,7 @@ def getHistFactory(config_factory, selection, filelist, luminosity=1, hist_file=
                 ROOT.SetOwnership(sumweights_hist, False)
                 weight_info = WeightInfo.WeightInfo(
                         mc_info[base_name]['cross_section']*kfac,
-                        sumweights_hist.Integral() if sumweights_hist else 0
+                        sumweights_hist.Integral(0,sumweights_hist.GetNbinsX()+1) if sumweights_hist else 0
                 )
         else:
             weight_info = WeightInfo.WeightInfo(1, 1)
@@ -495,7 +499,7 @@ def getPlotPaths(selection, folder_name, write_log_file=False):
     else:
         storage_area = "/eos/user/u/%s" % os.environ["USER"]
         html_area = "/afs/cern.ch/user/u/%s/www" % os.environ["USER"]
-    base_dir = "%s/ZZAnalysisData/PlottingResults" % storage_area
+    base_dir = "%s/ZZFullRun2/PlottingResults" % storage_area
     plot_path = "/".join([base_dir, selection] +
        (['{:%Y-%m-%d}'.format(datetime.datetime.today()),
         '{:%Hh%M}'.format(datetime.datetime.today())] if folder_name == "" \
@@ -530,8 +534,8 @@ def savePlot(canvas, plot_path, html_path, branch_name, write_log_file, args):
         log_file = "/".join([plot_path, "logs", "%s_event_info.log" % branch_name])
         verbose_log = log_file.replace("event_info", "event_info-verbose")
         shutil.move("temp.txt", log_file) 
-        if os.path.isfile("temp-verbose.txt"):
-            shutil.move("temp-verbose.txt", verbose_log) 
+        #if os.path.isfile("temp-verbose.txt"):
+        #    shutil.move("temp-verbose.txt", verbose_log) 
     output_name ="/".join([plot_path, "plots", branch_name]) 
     canvas.Print(output_name + ".root")
     canvas.Print(output_name + ".C")
@@ -540,7 +544,7 @@ def savePlot(canvas, plot_path, html_path, branch_name, write_log_file, args):
         output_name ="/".join([html_path, "plots", branch_name])
         canvas.Print(output_name + ".png")
         canvas.Print(output_name + ".eps")
-        subprocess.call(["epstopdf", "--outfile=%s" % output_name+".pdf", output_name+".eps"])
+        subprocess.call(["epstopdf", "--outfile=%s" % output_name+".pdf", output_name+".eps"],env={})
         os.remove(output_name+".eps")
         if write_log_file:
             makeDirectory(html_path + "/logs")

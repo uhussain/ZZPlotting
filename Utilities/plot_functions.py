@@ -99,6 +99,7 @@ def splitCanvas(oldcanvas, dimensions, ratio_text, ratio_range):
             map(centralRatioHist.Add, stack_hists[1:])
     centralHist = centralRatioHist.Clone("temp")
     centralRatioHist.SetFillColor(ROOT.TColor.GetColor("#828282"))
+    #centralRatioHist.SetFillColor(1)
     #centralRatioHist.SetFillStyle(1001)
     centralRatioHist.SetFillStyle(3345)
     centralRatioHist.SetMarkerSize(0)
@@ -129,6 +130,7 @@ def splitCanvas(oldcanvas, dimensions, ratio_text, ratio_range):
             del tmpRatio
     for i in range(centralRatioHist.GetNbinsX()+2):
         denom = centralHist.GetBinContent(i)
+        print "stackSum_denom: ",denom
         if denom == 0: continue
         centralRatioHist.SetBinError(i, centralHist.GetBinError(i)/denom)
         centralRatioHist.SetBinContent(i, 1.)
@@ -144,8 +146,11 @@ def splitCanvas(oldcanvas, dimensions, ratio_text, ratio_range):
     centralRatioHist.GetYaxis().SetNdivisions(003)
     centralRatioHist.GetYaxis().SetTitleSize(centralRatioHist.GetYaxis().GetTitleSize()*0.8)
     centralRatioHist.GetYaxis().SetLabelSize(centralRatioHist.GetYaxis().GetLabelSize()*0.8)
-    centralRatioHist.Draw("E2")
-    #centralRatioHist.Draw()
+    #centralRatioHist.Draw("E2")
+    centralRatioHist.SetFillColor(ROOT.kWhite)
+    centralRatioHist.SetLineColor(ROOT.kWhite)
+    centralRatioHist.SetFillStyle(0)
+    centralRatioHist.Draw()
     for ratioHist in ratioHists:
         drawOpt = "same"
         if not compareData:
