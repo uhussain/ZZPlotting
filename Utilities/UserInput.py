@@ -104,8 +104,8 @@ def getListOfFiles(file_set, selection):
                 #filelist.append("HZZ_signal")
                 filelist.append("nonprompt")
                 filelist.append("VVV")
-                filelist.append("GGZZ")
                 filelist.append("zzjj4l_ewk")
+                filelist.append("GGZZ")
                 #filelist.append("ggZZ")
                 filelist.append("qqZZ_powheg")
             elif "zzjj" in fileset_nc:
