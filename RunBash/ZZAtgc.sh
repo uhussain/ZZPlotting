@@ -1,4 +1,5 @@
-filename="Hists31Mar2020-ZZFullRun2_newSherpa.root"
+#filename="Hists31Mar2020-ZZFullRun2_newSherpa.root"
+filename="Hists10Nov2020-ZZFullRun2_newSherpa.root"
 #filename="Hists31Mar2020-ZZFullRun2.root"
 selection="ZZSelectionsTightLeps"
 #dir="ANPlots/FullRun2/FinalPaperPlots_22Apr2020"
@@ -13,7 +14,7 @@ do
      #just for thesis 
     #./makeHistStack.py -s ZZ4l2018/ZZSelectionsTightLeps -f ZZ4l2018NonPrompt -l 137.1 -u none --latex --logy --hist_file /afs/cern.ch/user/u/uhussain/ZZ4lRun2HistFiles/Hists31Mar2020-ZZFullRun2_newSherpa.root --no_ratio --signal_files f4_fg_0p0019_fz_0p0015,f5_fg_0p0019_fz_0p0015 --stack_signal --exclude_from_sigstack qqZZ_powheg,ggZZ --folder_name ANPlots/FullRun2/aTGC_f4_f5_thesis -b Mass --scaleymin 2000 --scaleymax 2 --scalelegx 1.8 --scalelegy 0.9 --rebin 100.0,200.0,300.0,400.0,500.0,600.0,800.0,1000.0,1300.0,1600.0
     #./makeHistStack.py -s ZZ4l2018/ZZSelectionsTightLeps -f ZZ4l2018NonPrompt -l 137.1 -u none --latex --logy --hist_file /afs/cern.ch/user/u/uhussain/ZZ4lRun2HistFiles/Hists31Mar2020-ZZFullRun2_newSherpa.root --no_ratio --signal_files f4_fg-0_fz-0p0015,f5_fg_0_fz_0p0015 --stack_signal --exclude_from_sigstack qqZZ_powheg,ggZZ --folder_name ANPlots/FullRun2/aTGC_f4_f5_thesis -b Mass --scaleymin 2000 --scaleymax 2 --scalelegx 1.8 --scalelegy 0.9 --rebin 100.0,200.0,300.0,400.0,500.0,600.0,800.0,1000.0,1300.0,1600.0
-    ./makeHistStack.py -s ZZ4l2018/ZZSelectionsTightLeps -f ZZ4l2018NonPrompt -l 137.1 -u none --latex --logy --hist_file /afs/cern.ch/user/u/uhussain/ZZ4lRun2HistFiles/Hists31Mar2020-ZZFullRun2_newSherpa.root --no_ratio --signal_files f4_fg-0_fz-0p0015 --stack_signal --exclude_from_sigstack qqZZ_powheg,ggZZ --folder_name ANPlots/FullRun2/aTGC_FullRun2PostApproval_26Sep2020 -b Mass --scaleymin 8 --scaleymax 1000 --scalelegx 1.8 --scalelegy 0.9 --rebin 100.0,200.0,300.0,400.0,500.0,600.0,800.0,1000.0,1300.0,1600.0
+    ./makeHistStack.py -s ZZ4l2018/ZZSelectionsTightLeps -f ZZ4l2018NonPrompt -l 137.1 -u none --latex --logy --hist_file /afs/cern.ch/user/u/uhussain/ZZ4lRun2HistFiles/Hists10Nov2020-ZZFullRun2_newSherpa.root --no_ratio --signal_files f4_fg-0_fz-0p0015 --stack_signal --exclude_from_sigstack qqZZ_powheg,GGZZ --folder_name ANPlots/FullRun2/aTGC_FullRun2PostApproval_14Nov2020 -b Mass --scaleymin 8 --scaleymax 1000 --scalelegx 1.8 --scalelegy 0.9 --rebin 100.0,200.0,300.0,400.0,500.0,600.0,800.0,1000.0,1300.0,1600.0
     #./makeHistStack.py -s ZZ4l2018/${selection} -f ZZ4l2018NonPrompt -l 137.1 -u none --latex --hist_file /afs/cern.ch/user/u/uhussain/ZZ4lRun2HistFiles/${filename} --folder_name ${dir} -b ${var} --scaleymax 1.1 --scalelegx 1.3 --rebin 100.0,200.0,250.0,300.0,350.0,400.0,500.0,600.0,800.0,1000.0,1200.0 
     # 
     #echo "Plotting 4e channel"
